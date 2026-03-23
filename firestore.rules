@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "netsanjay575@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isValidSubscriber(data) {
+      return data.keys().hasAll(['email', 'subscribedAt']) &&
+             data['email'] is string && data['email'].size() < 150 &&
+             isValidEmail(data['email']) &&
+             data['subscribedAt'] == request.time &&
+             (!('name' in data) || (data['name'] is string && data['name'].size() < 100)) &&
+             (!('phone' in data) || (data['phone'] is string && data['phone'].size() < 20)) &&
+             (!('preferences' in data) || (data['preferences'] is list && data['preferences'].size() < 10));
+    }
+
+    function isValidBooking(data) {
+      return data['fullName'] is string && data['fullName'].size() < 100 &&
+             data['phone'] is string && data['phone'].size() < 20 &&
+             data['service'] is string && data['service'].size() < 50 &&
+             data['date'] is string && data['date'].size() < 20 &&
+             (data['status'] == 'pending' || data['status'] == 'confirmed' || data['status'] == 'cancelled') &&
+             data['createdAt'] == request.time &&
+             data['userId'] == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /subscribers/{subscriberId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAuthenticated() && isValidSubscriber(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /announcements/{announcementId} {
+      allow read, get, list: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

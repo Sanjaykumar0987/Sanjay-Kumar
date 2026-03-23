@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "A grooming session booking",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "description": "Client's full name" },
+        "phone": { "type": "string", "description": "Client's phone number" },
+        "service": { "type": "string", "description": "Selected grooming service" },
+        "date": { "type": "string", "format": "date", "description": "Preferred date for the session" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"], "description": "Status of the booking" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the booking was created" },
+        "userId": { "type": "string", "description": "UID of the user who made the booking" }
+      },
+      "required": ["fullName", "phone", "service", "date", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "client"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "email", "role", "createdAt"]
+    },
+    "NewsletterSubscriber": {
+      "title": "NewsletterSubscriber",
+      "description": "A person subscribed to the newsletter",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "Subscriber's email address" },
+        "name": { "type": "string", "description": "Subscriber's name" },
+        "phone": { "type": "string", "description": "Subscriber's phone number" },
+        "preferences": { "type": "array", "items": { "type": "string" }, "description": "Style preferences" },
+        "subscribedAt": { "type": "string", "format": "date-time", "description": "When they subscribed" }
+      },
+      "required": ["email", "subscribedAt"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "A post or update from the owner",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the update" },
+        "content": { "type": "string", "description": "Detailed content of the update" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the update was posted" },
+        "authorId": { "type": "string", "description": "UID of the owner who posted it" }
+      },
+      "required": ["title", "content", "createdAt", "authorId"]
+    }
+  },
+  "firestore": {
+    "bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of salon bookings"
+    },
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "subscribers/{subscriberId}": {
+      "schema": "NewsletterSubscriber",
+      "description": "Newsletter subscription list"
+    },
+    "announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Updates and posts from the owner"
+    }
+  }
+}
